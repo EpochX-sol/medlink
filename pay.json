@@ -1,0 +1,37 @@
+[
+  {
+    "appointment_id": "6919c38ebac137f610116403",
+    "amount": 50,
+    "payment_method": "chapa",
+    "currency": "ETB",
+    "return_url": "http://localhost:3000/api/payments/validate"
+  },
+  {
+    "appointment_id": "6919c38ebac137f610116404",
+    "amount": 60,
+    "payment_method": "chapa",
+    "currency": "ETB",
+    "return_url": "http://localhost:3000/api/payments/validate"
+  },
+  {
+    "appointment_id": "6919c38ebac137f610116405",
+    "amount": 55,
+    "payment_method": "chapa",
+    "currency": "ETB",
+    "return_url": "http://localhost:3000/api/payments/validate"
+  },
+  {
+    "appointment_id": "6919c38ebac137f610116406",
+    "amount": 70,
+    "payment_method": "chapa",
+    "currency": "ETB",
+    "return_url": "http://localhost:3000/api/payments/validate"
+  },
+  {
+    "appointment_id": "6919c38ebac137f610116407",
+    "amount": 65,
+    "payment_method": "chapa",
+    "currency": "ETB",
+    "return_url": "http://localhost:3000/api/payments/validate"
+  }
+]
