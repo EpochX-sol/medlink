@@ -76,7 +76,14 @@ function handleJoinRoom(socket, io, roomId, userId, userName) {
   );
   socket.emit('existing-participants', participants);
 
-  console.log(`✅ User ${userId} joined room ${roomId}`);
+  console.log(`
+🎥 [VIDEO CALL] User Joined Room
+├─ Room ID: ${roomId}
+├─ User ID: ${userId}
+├─ User Name: ${userName}
+├─ Socket ID: ${socket.id}
+└─ Total Participants: ${activeRooms.get(roomId).size}
+  `);
 }
 
 /**
@@ -84,6 +91,12 @@ function handleJoinRoom(socket, io, roomId, userId, userName) {
  */
 function handleOffer(io, offer, to, from) {
   io.to(to).emit('offer', { offer, from });
+  console.log(`
+🎬 [WEBRTC] Offer Sent
+├─ From Socket: ${from}
+├─ To Socket: ${to}
+└─ Offer Type: ${offer.type || 'unknown'}
+  `);
 }
 
 /**
@@ -91,6 +104,12 @@ function handleOffer(io, offer, to, from) {
  */
 function handleAnswer(io, answer, to, from) {
   io.to(to).emit('answer', { answer, from });
+  console.log(`
+✅ [WEBRTC] Answer Sent
+├─ From Socket: ${from}
+├─ To Socket: ${to}
+└─ Answer Type: ${answer.type || 'unknown'}
+  `);
 }
 
 /**
@@ -98,6 +117,13 @@ function handleAnswer(io, answer, to, from) {
  */
 function handleIceCandidate(io, candidate, to, from) {
   io.to(to).emit('ice-candidate', { candidate, from });
+  console.log(`
+🌐 [WEBRTC] ICE Candidate Relayed
+├─ From Socket: ${from}
+├─ To Socket: ${to}
+├─ Candidate Type: ${candidate?.candidate?.split(' ')[7] || 'unknown'}
+└─ Foundation: ${candidate?.foundation || 'N/A'}
+  `);
 }
 
 /**
@@ -120,7 +146,13 @@ function handleLeaveRoom(socket, io, roomId, userId) {
   }
 
   socket.to(roomId).emit('user-left', { userId, socketId: socket.id });
-  console.log(`🚪 User ${userId} left room ${roomId}`);
+  console.log(`
+🚪 [VIDEO CALL] User Left Room
+├─ Room ID: ${roomId}
+├─ User ID: ${userId}
+├─ Socket ID: ${socket.id}
+└─ Remaining Participants: ${activeRooms.get(roomId)?.size || 0}
+  `);
 }
 
 /**

@@ -39,15 +39,22 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Log all incoming requests and outgoing responses (safe for all methods)
+// Log all incoming requests and outgoing responses (exclude /messages endpoints)
 app.use((req, res, next) => {
-  console.log(`➡️  ${req.method} ${req.originalUrl}`);
-  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length) {
-    console.log('   Body:', JSON.stringify(req.body));
+  const isMessageAPI = req.originalUrl.includes('/messages');
+  
+  if (!isMessageAPI) {
+    console.log(`➡️  ${req.method} ${req.originalUrl}`);
+    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length) {
+      console.log('   Body:', JSON.stringify(req.body));
+    }
   }
+  
   const oldJson = res.json;
   res.json = function (data) {
-    console.log(`⬅️  ${res.statusCode} Response:`, JSON.stringify(data));
+    if (!isMessageAPI) {
+      console.log(`⬅️  ${res.statusCode} Response:`, JSON.stringify(data));
+    }
     return oldJson.call(this, data);
   };
   next();

@@ -71,7 +71,14 @@ function handleRegisterUser(socket, userId, userName, userType) {
     userName,
     userType,
   });
-  console.log(`✅ User ${userName} (${userType}) registered: ${socket.id}`);
+  console.log(`
+🟢 [CALL SYSTEM] User Registered
+├─ User ID: ${userId}
+├─ User Name: ${userName}
+├─ User Type: ${userType}
+├─ Socket ID: ${socket.id}
+└─ Total Online Users: ${connectedUsers.size}
+  `);
 }
 
 /**
@@ -134,7 +141,17 @@ async function handleInitiateCall(socket, io, recipientId, callType) {
       callType,
     });
 
-    console.log(`📞 Call initiated: ${caller[1].userName} -> ${recipient.userName}`);
+    console.log(`
+📞 [INCOMING CALL] Call Initiated
+├─ Call ID: ${callSession._id}
+├─ Caller ID: ${callerId}
+├─ Caller Name: ${caller[1].userName}
+├─ Recipient ID: ${recipientId}
+├─ Recipient Name: ${recipient.userName}
+├─ Call Type: ${callType}
+├─ Room ID: ${roomId}
+└─ Status: pending
+  `);
   } catch (error) {
     console.error('Error initiating call:', error.message);
     socket.emit('call-error', { message: error.message });
@@ -176,7 +193,19 @@ async function handleAcceptCall(socket, io, callSessionId, callerId) {
       callType: callSession.callType,
     });
 
-    console.log(`✅ Call accepted: ${callSessionId}`);
+    const recipient = connectedUsers.get(callSession.recipientId);
+    console.log(`
+✅ [CALL ACCEPTED] Call Accepted & Active
+├─ Call ID: ${callSessionId}
+├─ Caller ID: ${callerId}
+├─ Caller Name: ${caller?.userName || 'N/A'}
+├─ Recipient ID: ${callSession.recipientId}
+├─ Recipient Name: ${recipient?.userName || 'N/A'}
+├─ Call Type: ${callSession.callType}
+├─ Room ID: ${callSession.roomId}
+├─ Answered At: ${callSession.answeredAt}
+└─ Status: active
+  `);
   } catch (error) {
     console.error('Error accepting call:', error.message);
     socket.emit('call-error', { message: error.message });
@@ -207,7 +236,17 @@ async function handleRejectCall(socket, io, callSessionId, callerId) {
     userCalls.delete(callerId);
     userCalls.delete(callSession?.recipientId);
 
-    console.log(`❌ Call rejected: ${callSessionId}`);
+    const recipient = connectedUsers.get(callSession?.recipientId);
+    console.log(`
+❌ [CALL REJECTED] Call Declined
+├─ Call ID: ${callSessionId}
+├─ Caller ID: ${callerId}
+├─ Caller Name: ${caller?.userName || 'N/A'}
+├─ Recipient ID: ${callSession?.recipientId}
+├─ Recipient Name: ${recipient?.userName || 'N/A'}
+├─ Call Type: ${callSession?.callType}
+└─ Status: rejected
+  `);
   } catch (error) {
     console.error('Error rejecting call:', error.message);
   }
@@ -237,7 +276,17 @@ async function handleCancelCall(socket, io, callSessionId, recipientId) {
     userCalls.delete(callSession?.callerId);
     userCalls.delete(recipientId);
 
-    console.log(`🚪 Call cancelled: ${callSessionId}`);
+    const caller = connectedUsers.get(callSession?.callerId);
+    console.log(`
+🚫 [CALL CANCELLED] Outgoing Call Cancelled
+├─ Call ID: ${callSessionId}
+├─ Caller ID: ${callSession?.callerId}
+├─ Caller Name: ${caller?.userName || 'N/A'}
+├─ Recipient ID: ${recipientId}
+├─ Recipient Name: ${recipient?.userName || 'N/A'}
+├─ Call Type: ${callSession?.callType}
+└─ Status: cancelled
+  `);
   } catch (error) {
     console.error('Error cancelling call:', error.message);
   }
@@ -269,7 +318,22 @@ async function handleEndCall(socket, io, callSessionId) {
     userCalls.delete(callSession?.callerId);
     userCalls.delete(callSession?.recipientId);
 
-    console.log(`⏱️ Call ended: ${callSessionId} (${callSession?.duration}s)`);
+    const caller = connectedUsers.get(callSession?.callerId);
+    const recipient = connectedUsers.get(callSession?.recipientId);
+    console.log(`
+⏱️ [CALL ENDED] Call Completed
+├─ Call ID: ${callSessionId}
+├─ Caller ID: ${callSession?.callerId}
+├─ Caller Name: ${caller?.userName || 'N/A'}
+├─ Recipient ID: ${callSession?.recipientId}
+├─ Recipient Name: ${recipient?.userName || 'N/A'}
+├─ Call Type: ${callSession?.callType}
+├─ Duration: ${callSession?.duration}s
+├─ Started At: ${callSession?.initiatedAt}
+├─ Answered At: ${callSession?.answeredAt}
+├─ Ended At: ${callSession?.endedAt}
+└─ Status: completed
+  `);
   } catch (error) {
     console.error('Error ending call:', error.message);
   }
@@ -294,9 +358,11 @@ function handleGetOnlineUsers(socket) {
 function handleUserDisconnect(socket, io) {
   // Find and remove disconnected user
   let disconnectedUserId;
+  let disconnectedUserName;
   for (const [userId, user] of connectedUsers.entries()) {
     if (user.socketId === socket.id) {
       disconnectedUserId = userId;
+      disconnectedUserName = user.userName;
       connectedUsers.delete(userId);
 
       // End any active calls
@@ -307,9 +373,24 @@ function handleUserDisconnect(socket, io) {
           userId,
         });
         userCalls.delete(userId);
+        
+        console.log(`
+⚠️ [CALL DISCONNECTED] User Disconnected During Call
+├─ User ID: ${userId}
+├─ User Name: ${disconnectedUserName}
+├─ Socket ID: ${socket.id}
+├─ Call Session ID: ${userCall.callSessionId}
+└─ Remaining Online Users: ${connectedUsers.size}
+  `);
+      } else {
+        console.log(`
+👋 [USER DISCONNECTED] User Went Offline
+├─ User ID: ${disconnectedUserId}
+├─ User Name: ${disconnectedUserName}
+├─ Socket ID: ${socket.id}
+└─ Remaining Online Users: ${connectedUsers.size}
+  `);
       }
-
-      console.log(`👋 User disconnected: ${userId}`);
       break;
     }
   }
