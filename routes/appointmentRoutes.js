@@ -5,12 +5,14 @@ import {
   getAppointmentsForPatient,
   getAppointmentsForDoctor,
   updateAppointment,
-  deleteAppointment
+  deleteAppointment,
+  getAllAppointments
 } from '../controllers/appointmentController.js';
 
 const router = express.Router();
 
 router.post('/', createAppointment);
+router.get('/', getAllAppointments)
 router.get('/:id', getAppointmentById);
 router.get('/patient/:patientId', getAppointmentsForPatient);
 router.get('/doctor/:doctorId', getAppointmentsForDoctor);

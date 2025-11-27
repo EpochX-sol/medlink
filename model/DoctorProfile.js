@@ -4,7 +4,15 @@ const doctorProfileSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     specialty: { type: String, required: true },
     bio: { type: String },
-    availability: { type: mongoose.Schema.Types.Mixed },
+    availability: { type: mongoose.Schema.Types.Mixed }, 
+    pricePerHour: { type: Number, default: 0 }, 
+    availableBalance: { type: Number, default: 0 }, 
+    paymentDetails: {
+        bank: { type: String },
+        accountNumber: { type: String },
+        accountHolderName: { type: String },
+        phoneNumber: { type: String }
+    },
     ratings: { type: Number },
     medicalLicenseNumber: { type: String, required: true },
     documents: {

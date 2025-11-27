@@ -1,3 +1,32 @@
+// Admin: Set doctor hourly rate
+export const setDoctorRate = async (req, res) => {
+  try {
+    const { pricePerHour } = req.body;
+    if (typeof pricePerHour !== 'number' || pricePerHour < 0) {
+      return res.status(400).json({ error: 'Invalid pricePerHour' });
+    }
+    const profile = await DoctorProfile.findByIdAndUpdate(
+      req.params.id,
+      { pricePerHour },
+      { new: true }
+    );
+    if (!profile) return res.status(404).json({ error: 'Doctor profile not found' });
+    res.json(profile);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Admin: Edit doctor profile (full edit)
+export const adminEditDoctorProfile = async (req, res) => {
+  try {
+    const profile = await DoctorProfile.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!profile) return res.status(404).json({ error: 'Doctor profile not found' });
+    res.json(profile);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 import DoctorProfile from '../model/DoctorProfile.js';
 
 export const createDoctorProfile = async (req, res) => {

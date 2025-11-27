@@ -1,15 +1,11 @@
 import express from 'express';
-import { initializePayment, validatePayment, getPayment } from '../controllers/paymentController.js';
+import { initializePayment, verifyPayment, getPayment } from '../controllers/paymentController.js';
 
 const router = express.Router();
 
-// Initialize payment and redirect to Chapa
-router.post('/initialize', initializePayment);
-
-// Chapa return URL calls this to validate payment
-router.get('/validate', validatePayment);
-
-// Get payment by ID
-router.get('/:id', getPayment);
+// Chapa payment endpoints
+router.post('/initialize', initializePayment); // Start payment
+router.get('/verify', verifyPayment); // Verify payment (Chapa callback/return)
+router.get('/:id', getPayment); // Get payment by ID
 
 export default router;

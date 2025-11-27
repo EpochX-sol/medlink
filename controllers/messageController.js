@@ -9,6 +9,21 @@ export const sendMessage = async (req, res) => {
   }
 };
 
+export const getMessagesByUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const messages = await Message.find({
+      $or: [
+        { sender_id: userId },
+        { receiver_id: userId }
+      ]
+    });
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const getMessagesByAppointment = async (req, res) => {
   try {
     const messages = await Message.find({ appointment_id: req.params.appointmentId });

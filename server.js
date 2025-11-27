@@ -3,6 +3,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import http from 'http';
+import { Server } from 'socket.io';
 
 import appointmentRoutes from './routes/appointmentRoutes.js';
 import doctorProfileRoutes from './routes/doctorProfileRoutes.js';
@@ -11,6 +13,8 @@ import prescriptionRoutes from './routes/prescriptionRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import videoRoutes from './routes/videoRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import callRoutes from './routes/callRoutes.js';
+import { initializeSocketIO } from './utils/socketIO.js';
 
 // Load env variables
 dotenv.config();
@@ -43,8 +47,7 @@ app.use((req, res, next) => {
 // Connect to MongoDB
 mongoose
   .connect(MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB:', MONGODB_URI);
+  .then(() => { 
     console.log('📊 Database:', mongoose.connection.db.databaseName);
   })
   .catch((error) => {
@@ -73,6 +76,9 @@ app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/video', videoRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/calls', callRoutes);
+import adminRoutes from './routes/adminRoutes.js';
+app.use('/api/admin', adminRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -94,11 +100,25 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Create HTTP server and wrap Express app
+const server = http.createServer(app);
+
+// Initialize Socket.io for WebRTC signaling and video calls
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:3080',
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Initialize Socket.io event handlers
+initializeSocketIO(io);
+
 // Start server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 Health check: http://localhost:${PORT}/health`);
-  console.log(`📚 API docs: http://localhost:${PORT}/api`);
+  console.log(`📚 WebSocket: ws://localhost:${PORT}`);
 });
 
 export default app;
