@@ -26,7 +26,16 @@ const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 // Middleware
-app.use(cors());
+// CORS configuration for REST API
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3080',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -105,10 +114,8 @@ const server = http.createServer(app);
 
 // Initialize Socket.io for WebRTC signaling and video calls
 const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3080',
-    methods: ['GET', 'POST'],
-  },
+  cors: corsOptions,
+  transports: ['websocket', 'polling'],
 });
 
 // Initialize Socket.io event handlers
