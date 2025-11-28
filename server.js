@@ -95,6 +95,8 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/calls', callRoutes);
 import adminRoutes from './routes/adminRoutes.js';
 app.use('/api/admin', adminRoutes);
+import turnRoutes from './routes/turnRoutes.js';
+app.use('/api/turn', turnRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
