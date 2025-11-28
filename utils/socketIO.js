@@ -51,6 +51,31 @@ export const initializeSocketIO = (io) => {
   });
 };
 
+// Helper: summarize SDP (presence of audio/video, length)
+function summarizeSDP(sdp) {
+  if (!sdp) return { hasAudio: false, hasVideo: false, length: 0 };
+  const hasAudio = /m=audio/i.test(sdp);
+  const hasVideo = /m=video/i.test(sdp);
+  return { hasAudio, hasVideo, length: sdp.length };
+}
+
+// Helper: parse candidate string into pieces (type, ip, port, protocol)
+function parseCandidate(candidateStr) {
+  try {
+    if (!candidateStr) return null;
+    // candidate: foundation component protocol priority ip port typ type ...
+    const parts = candidateStr.split(' ');
+    const ip = parts[4];
+    const port = parts[5];
+    const protocol = parts[2];
+    const typIndex = parts.indexOf('typ');
+    const type = typIndex !== -1 ? parts[typIndex + 1] : 'unknown';
+    return { ip, port, protocol, type };
+  } catch (err) {
+    return null;
+  }
+}
+
 /**
  * Handle user joining a video room
  */
@@ -91,11 +116,15 @@ function handleJoinRoom(socket, io, roomId, userId, userName) {
  */
 function handleOffer(io, offer, to, from) {
   io.to(to).emit('offer', { offer, from });
+  const sdpInfo = summarizeSDP(offer?.sdp);
   console.log(`
 🎬 [WEBRTC] Offer Sent
 ├─ From Socket: ${from}
 ├─ To Socket: ${to}
-└─ Offer Type: ${offer.type || 'unknown'}
+├─ Offer Type: ${offer.type || 'unknown'}
+├─ SDP length: ${sdpInfo.length}
+├─ Contains audio: ${sdpInfo.hasAudio}
+└─ Contains video: ${sdpInfo.hasVideo}
   `);
 }
 
@@ -104,11 +133,15 @@ function handleOffer(io, offer, to, from) {
  */
 function handleAnswer(io, answer, to, from) {
   io.to(to).emit('answer', { answer, from });
+  const sdpInfo = summarizeSDP(answer?.sdp);
   console.log(`
 ✅ [WEBRTC] Answer Sent
 ├─ From Socket: ${from}
 ├─ To Socket: ${to}
-└─ Answer Type: ${answer.type || 'unknown'}
+├─ Answer Type: ${answer.type || 'unknown'}
+├─ SDP length: ${sdpInfo.length}
+├─ Contains audio: ${sdpInfo.hasAudio}
+└─ Contains video: ${sdpInfo.hasVideo}
   `);
 }
 
@@ -117,12 +150,19 @@ function handleAnswer(io, answer, to, from) {
  */
 function handleIceCandidate(io, candidate, to, from) {
   io.to(to).emit('ice-candidate', { candidate, from });
+  const cand = candidate?.candidate || candidate;
+  const parsed = parseCandidate(cand?.candidate || cand);
   console.log(`
 🌐 [WEBRTC] ICE Candidate Relayed
 ├─ From Socket: ${from}
 ├─ To Socket: ${to}
-├─ Candidate Type: ${candidate?.candidate?.split(' ')[7] || 'unknown'}
-└─ Foundation: ${candidate?.foundation || 'N/A'}
+├─ Candidate String: ${cand?.candidate || 'N/A'}
+├─ Candidate Type: ${parsed?.type || candidate?.type || 'unknown'}
+├─ Candidate IP: ${parsed?.ip || 'N/A'}
+├─ Candidate Port: ${parsed?.port || 'N/A'}
+├─ Protocol: ${parsed?.protocol || 'N/A'}
+├─ sdpMid: ${candidate?.sdpMid || 'N/A'}
+└─ sdpMLineIndex: ${candidate?.sdpMLineIndex ?? 'N/A'}
   `);
 }
 

@@ -12,6 +12,8 @@ export const getTurnCredentials = (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  console.log('➡️  GET /api/turn/credentials from', req.ip || req.connection?.remoteAddress || 'unknown');
+
   // Default STUN fallback
   let iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
 
@@ -42,6 +44,28 @@ export const getTurnCredentials = (req, res) => {
         credential: process.env.TURN_PASSWORD,
       });
     }
+  }
+
+  // Mask credentials when logging (do not print full secret)
+  const mask = (s) => {
+    if (!s) return s;
+    if (s.length <= 4) return '****';
+    return `${s.substring(0, 2)}***${s.substring(s.length - 2)}`;
+  };
+
+  try {
+    const logIce = (arr) =>
+      arr.map((e) => {
+        if (typeof e === 'string') return e;
+        const clone = { ...e };
+        if (clone.username) clone.username = mask(clone.username);
+        if (clone.credential) clone.credential = mask(clone.credential);
+        return clone;
+      });
+
+    console.log('⬅️  /api/turn/credentials response:', JSON.stringify({ iceServers: logIce(iceServers) }));
+  } catch (err) {
+    // ignore logging errors
   }
 
   return res.json({ iceServers });
