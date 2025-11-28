@@ -28,9 +28,12 @@ export const getTurnCredentials = (req, res) => {
       console.warn('TURN_ICE_SERVERS_JSON is invalid JSON, falling back to other env vars');
     }
   } else if (process.env.TURN_URL && process.env.TURN_USERNAME && process.env.TURN_PASSWORD) {
-    // 2) Single TURN URL
+    // 2) Single TURN URL -> expand to try TCP transport as well (helps on restrictive networks)
+    // If the TURN_URL is a single string, return it plus a TCP variant with ?transport=tcp
+    const baseUrl = process.env.TURN_URL;
+    const urls = [baseUrl, `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}transport=tcp`];
     iceServers.push({
-      urls: process.env.TURN_URL,
+      urls,
       username: process.env.TURN_USERNAME,
       credential: process.env.TURN_PASSWORD,
     });
