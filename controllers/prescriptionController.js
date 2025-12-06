@@ -28,6 +28,15 @@ export const getPrescriptionsByPatient = async (req, res) => {
   }
 };
 
+export const getPrescriptionsByDoctor = async (req, res) => {
+  try {
+    const prescriptions = await Prescription.find({ doctor_id: req.params.doctorId });
+    res.json(prescriptions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const updatePrescription = async (req, res) => {
   try {
     const prescription = await Prescription.findByIdAndUpdate(req.params.id, req.body, { new: true });
