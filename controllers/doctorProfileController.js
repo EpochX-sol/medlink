@@ -59,7 +59,12 @@ export const getAllDoctorProfiles = async (req, res) => {
 
 export const updateDoctorProfile = async (req, res) => {
   try {
-    const profile = await DoctorProfile.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // Try updating by profile _id first
+    let profile = await DoctorProfile.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // If not found, allow updating by doctor user id (client may send user id instead of profile id)
+    if (!profile) {
+      profile = await DoctorProfile.findOneAndUpdate({ user_id: req.params.id }, req.body, { new: true });
+    }
     if (!profile) return res.status(404).json({ error: 'Doctor profile not found' });
     res.json(profile);
   } catch (err) {
